@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SEO Tag Generator - YouTube Tools</title>
+    <!-- Poppins Font for Rapidtags style typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <style>
+        :root {
+            /* Rapidtags Style Theme Variables */
+            --bg-base: #0a0a0a;
+            --bg-surface: #141414;
+            --bg-surface-hover: #1f1f1f;
+            --bg-input: #1a1a1a;
+            --text-primary: #ffffff;
+            --text-secondary: #a1a1aa;
+            --accent-red: #f40000;
+            --accent-red-hover: #cc0000;
+            --accent-red-glow: rgba(244, 0, 0, 0.25);
+            --accent-green: #10b981;
+            --border-color: #27272a;
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-full: 9999px;
+            --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        [data-theme="light"] {
+            --bg-base: #f8fafc;
+            --bg-surface: #ffffff;
+            --bg-surface-hover: #f1f5f9;
+            --bg-input: #f1f5f9;
+            --text-primary: #0f172a;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --accent-red-glow: rgba(244, 0, 0, 0.15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* Tool Header Section */
+        .tool-header {
+            text-align: center;
+            padding: 80px 20px 40px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .tool-header h1 {
+            font-size: clamp(2rem, 4vw, 3rem);
+            font-weight: 800;
+            margin-bottom: 16px;
+            letter-spacing: -0.02em;
+        }
+
+        .tool-header h1 span {
+            color: var(--accent-red);
+        }
+
+        .tool-header p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        /* Tool Workspace */
+        .workspace {
+            flex: 1;
+            max-width: 900px;
+            margin: 0 auto;
+            width: 100%;
+            padding: 0 20px 80px;
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+        }
+
+        /* Search / Input Area */
+        .search-wrapper {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 32px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        }
+
+        .search-container {
+            width: 100%;
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-full);
+            padding: 8px;
+            display: flex;
+            align-items: center;
+            transition: var(--transition);
+        }
+
+        .search-container:focus-within {
+            border-color: var(--accent-red);
+            box-shadow: 0 0 0 4px var(--accent-red-glow);
+            transform: translateY(-1px);
+        }
+
+        .search-icon {
+            padding: 0 16px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+        }
+
+        .search-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--text-primary);
+            font-size: 1.125rem;
+            font-weight: 500;
+            padding: 12px 0;
+        }
+
+        .search-input::placeholder {
+            color: var(--text-secondary);
+            font-weight: 400;
+        }
+
+        .search-btn {
+            background-color: var(--accent-red);
+            color: white;
+            border: none;
+            border-radius: var(--radius-full);
+            padding: 14px 32px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .search-btn:hover {
+            background-color: var(--accent-red-hover);
+            transform: scale(1.02);
+            box-shadow: 0 4px 15px var(--accent-red-glow);
+        }
+
+        /* Results Layout */
+        .results-container {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+            display: none;
+            /* Hidden by default until JS triggers */
+        }
+
+        .results-container.active {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Tags Panel */
+        .panel {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 32px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .panel-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .panel-title svg {
+            color: var(--accent-red);
+        }
+
+        .tags-wrapper {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            background: var(--bg-input);
+            border: 1px dashed var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 24px;
+            min-height: 250px;
+            align-content: flex-start;
+            flex: 1;
+        }
+
+        .tag-pill {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 10px 20px;
+            border-radius: var(--radius-sm);
+            font-size: 1rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: var(--transition);
+            cursor: pointer;
+            user-select: none;
+            animation: fadeIn 0.3s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .tag-pill:hover {
+            border-color: var(--accent-red);
+            color: var(--accent-red);
+            background: var(--bg-input);
+            transform: translateY(-2px);
+        }
+
+        .tag-pill svg {
+            width: 16px;
+            height: 16px;
+            opacity: 0.5;
+            transition: opacity 0.2s ease;
+        }
+
+        .tag-pill:hover svg {
+            opacity: 1;
+        }
+
+        .tags-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 24px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 24px;
+        }
+
+        .word-count {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .word-count.limit-reached {
+            color: var(--accent-red);
+            font-weight: 700;
+        }
+
+        .copy-btn {
+            background: var(--accent-red);
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .copy-btn:hover {
+            background: var(--accent-red-hover);
+            transform: translateY(-2px);
+        }
+
+        .copy-btn.copied {
+            background: var(--accent-green);
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .search-container {
+                flex-direction: column;
+                border-radius: var(--radius-lg);
+                padding: 12px;
+                background: transparent;
+                border: none;
+            }
+
+            .search-input {
+                width: 100%;
+                background: var(--bg-input);
+                border: 1px solid var(--border-color);
+                border-radius: var(--radius-md);
+                padding: 16px;
+                text-align: center;
+                margin-bottom: 12px;
+            }
+
+            .search-icon {
+                display: none;
+            }
+
+            .search-btn {
+                width: 100%;
+                justify-content: center;
+                border-radius: var(--radius-md);
+                padding: 16px;
+            }
+
+            .tags-footer {
+                flex-direction: column;
+                gap: 16px;
+                text-align: center;
+            }
+
+            .copy-btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Include Navbar Framework -->
+    <div th:replace="~{navbar :: navbar}"></div>
+
+    <header class="tool-header">
+        <h1>YouTube SEO <span>Tag Generator</span></h1>
+        <p>Enter your Next Video Title or Idea to instantly generate the most viral, highly-searched SEO tags used by
+            top creators.</p>
+    </header>
+
+    <main class="workspace">
+
+        <!-- Input Area -->
+        <div class="search-wrapper">
+            <div class="search-container">
+                <div class="search-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                    </svg>
+                </div>
+                <!-- ID matched to backend expectation if needed; placeholder describes usage -->
+                <input type="text" id="tagInput" class="search-input"
+                    placeholder="e.g. 'How to bake a cake' or video URL..." autocomplete="off">
+                <button id="generateTagsBtn" class="search-btn">
+                    Generate Tags
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                        <line x1="7" y1="7" x2="7.01" y2="7"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Hidden by default, shown via JS when Backend connection is simulated/made -->
+        <div class="results-container" id="resultsArea">
+
+            <!-- Tags Panel -->
+            <div class="panel">
+                <div class="panel-header">
+                    <h2 class="panel-title">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                        </svg>
+                        Optimized Trending Tags
+                    </h2>
+                </div>
+
+                <div class="tags-wrapper" id="tagsList">
+                    <!-- Example Tags; backend will loop to create these dynamically -->
+                    <div class="tag-pill" style="animation-delay: 0.05s;">baking <svg viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg></div>
+                    <div class="tag-pill" style="animation-delay: 0.1s;">how to bake a cake <svg viewBox="0 0 24 24"
+                            fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg></div>
+                    <div class="tag-pill" style="animation-delay: 0.15s;">cake recipe <svg viewBox="0 0 24 24"
+                            fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg></div>
+                    <div class="tag-pill" style="animation-delay: 0.2s;">easy cake recipe <svg viewBox="0 0 24 24"
+                            fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg></div>
+                    <div class="tag-pill" style="animation-delay: 0.25s;">chocolate cake <svg viewBox="0 0 24 24"
+                            fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg></div>
+                    <div class="tag-pill" style="animation-delay: 0.3s;">baking for beginners <svg viewBox="0 0 24 24"
+                            fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg></div>
+                    <div class="tag-pill" style="animation-delay: 0.35s;">dessert <svg viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg></div>
+                    <div class="tag-pill" style="animation-delay: 0.4s;">homemade cake <svg viewBox="0 0 24 24"
+                            fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg></div>
+                    <div class="tag-pill" style="animation-delay: 0.45s;">baking ASMR <svg viewBox="0 0 24 24"
+                            fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg></div>
+                    <div class="tag-pill" style="animation-delay: 0.5s;">sponge cake <svg viewBox="0 0 24 24"
+                            fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg></div>
+                    <div class="tag-pill" style="animation-delay: 0.55s;">vanilla cake <svg viewBox="0 0 24 24"
+                            fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg></div>
+                    <div class="tag-pill" style="animation-delay: 0.6s;">satisfying baking <svg viewBox="0 0 24 24"
+                            fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg></div>
+                    <div class="tag-pill" style="animation-delay: 0.65s;">yummy <svg viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg></div>
+                </div>
+
+                <div class="tags-footer">
+                    <!-- Progress / Limit context for YouTube's ~500 char limit -->
+                    <div class="word-count" id="tagLimitTracker">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="8" x2="12" y2="12"></line>
+                            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                        </svg>
+                        <span><b id="charCount">0</b> / 500 chars (Optimized)</span>
+                    </div>
+
+                    <button class="copy-btn" id="copyTagsBtn">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        </svg>
+                        Copy All Tags
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- UI Interaction Scripts for the Client Side (Real backend data injection later) -->
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const generateTagsBtn = document.getElementById('generateTagsBtn');
+            const resultsArea = document.getElementById('resultsArea');
+            const copyTagsBtn = document.getElementById('copyTagsBtn');
+            const tagsList = document.getElementById('tagsList');
+            const tagInput = document.getElementById('tagInput');
+
+            // --- 1. Simulate Extraction UI Reveal ---
+            generateTagsBtn.addEventListener('click', () => {
+                const query = tagInput.value.trim();
+                if (!query) {
+                    alert('Please enter a YouTube video URL or topic idea.');
+                    return;
+                }
+
+                // Show a loading state on button
+                const originalText = generateTagsBtn.innerHTML;
+                generateTagsBtn.innerHTML = 'Generating... <span style="animation: spin 1s linear infinite; display: inline-block;">⚙️</span>';
+                generateTagsBtn.style.opacity = '0.8';
+
+                // Simulate backend delay then show results
+                setTimeout(() => {
+                    generateTagsBtn.innerHTML = originalText;
+                    generateTagsBtn.style.opacity = '1';
+                    resultsArea.classList.add('active'); // Reveals the grids
+                    updateCharCount(); // Initialize Character counter on open
+                }, 800);
+            });
+
+            // --- 2. Copy Tags to Clipboard Logic ---
+            copyTagsBtn.addEventListener('click', () => {
+                const pills = tagsList.querySelectorAll('.tag-pill');
+                const tagArray = Array.from(pills).map(pill => pill.innerText.replace(/[\n\r]+|[\s]{2,}/g, ' ').trim());
+                const tagsString = tagArray.join(', ');
+
+                navigator.clipboard.writeText(tagsString).then(() => {
+                    const originalBtnContent = copyTagsBtn.innerHTML;
+                    copyTagsBtn.classList.add('copied');
+                    copyTagsBtn.innerHTML = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Copied Successfully!`;
+
+                    setTimeout(() => {
+                        copyTagsBtn.classList.remove('copied');
+                        copyTagsBtn.innerHTML = originalBtnContent;
+                    }, 2000);
+                });
+            });
+
+            // --- 3. Tag Deletion UI logic (Allows users to trim down to 500 chars) ---
+            tagsList.addEventListener('click', (e) => {
+                const pill = e.target.closest('.tag-pill');
+                if (pill) {
+                    pill.style.transform = 'scale(0.9)';
+                    pill.style.opacity = '0';
+                    setTimeout(() => {
+                        pill.remove();
+                        updateCharCount(); // Call function to recalculate the 500 max limit
+                    }, 200);
+                }
+            });
+
+            function updateCharCount() {
+                const pills = tagsList.querySelectorAll('.tag-pill');
+                const tagArray = Array.from(pills).map(pill => pill.innerText.replace(/[\n\r]+|[\s]{2,}/g, ' ').trim());
+                // Length calculated based on comma spaces format that youtube uses for pasting
+                const totalChars = tagArray.join(', ').length;
+
+                const countDisplay = document.getElementById('charCount');
+                const tracker = document.getElementById('tagLimitTracker');
+
+                countDisplay.innerText = totalChars;
+
+                if (totalChars > 500) {
+                    tracker.classList.add('limit-reached');
+                } else {
+                    tracker.classList.remove('limit-reached');
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>

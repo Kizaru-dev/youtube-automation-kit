@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Data Analyzer - YouTube Tools</title>
+    <!-- Poppins Font for Rapidtags style typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <style>
+        :root {
+            /* Rapidtags Style Theme Variables */
+            --bg-base: #0a0a0a;
+            --bg-surface: #141414;
+            --bg-surface-hover: #1f1f1f;
+            --bg-input: #1a1a1a;
+            --text-primary: #ffffff;
+            --text-secondary: #a1a1aa;
+            --accent-red: #f40000;
+            --accent-red-hover: #cc0000;
+            --accent-red-glow: rgba(244, 0, 0, 0.25);
+            --accent-green: #10b981;
+            --border-color: #27272a;
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-full: 9999px;
+            --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        [data-theme="light"] {
+            --bg-base: #f8fafc;
+            --bg-surface: #ffffff;
+            --bg-surface-hover: #f1f5f9;
+            --bg-input: #f1f5f9;
+            --text-primary: #0f172a;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --accent-red-glow: rgba(244, 0, 0, 0.15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* Tool Header Section */
+        .tool-header {
+            text-align: center;
+            padding: 80px 20px 40px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .tool-header h1 {
+            font-size: clamp(2rem, 4vw, 3rem);
+            font-weight: 800;
+            margin-bottom: 16px;
+            letter-spacing: -0.02em;
+        }
+
+        .tool-header h1 span {
+            color: var(--accent-red);
+        }
+
+        .tool-header p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        /* Tool Workspace */
+        .workspace {
+            flex: 1;
+            max-width: 1100px;
+            margin: 0 auto;
+            width: 100%;
+            padding: 0 20px 80px;
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+        }
+
+        /* Search / Input Area */
+        .search-wrapper {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 32px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        }
+
+        .search-container {
+            width: 100%;
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-full);
+            padding: 8px;
+            display: flex;
+            align-items: center;
+            transition: var(--transition);
+        }
+
+        .search-container:focus-within {
+            border-color: var(--accent-red);
+            box-shadow: 0 0 0 4px var(--accent-red-glow);
+            transform: translateY(-1px);
+        }
+
+        .search-icon {
+            padding: 0 16px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+        }
+
+        .search-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--text-primary);
+            font-size: 1.125rem;
+            font-weight: 500;
+            padding: 12px 0;
+        }
+
+        .search-input::placeholder {
+            color: var(--text-secondary);
+            font-weight: 400;
+        }
+
+        .search-btn {
+            background-color: var(--accent-red);
+            color: white;
+            border: none;
+            border-radius: var(--radius-full);
+            padding: 14px 32px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .search-btn:hover {
+            background-color: var(--accent-red-hover);
+            transform: scale(1.02);
+            box-shadow: 0 4px 15px var(--accent-red-glow);
+        }
+
+        /* Results Layout */
+        .results-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 32px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+            display: none;
+            /* Hidden by default until JS triggers */
+        }
+
+        .results-container.active {
+            display: grid;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Thumbnail Panel */
+        .panel {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .panel-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .panel-title svg {
+            color: var(--accent-red);
+        }
+
+        .thumbnail-preview {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            background: var(--bg-input);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .thumbnail-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .download-btn {
+            width: 100%;
+            background: var(--bg-input);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            padding: 14px;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .download-btn:hover {
+            border-color: var(--text-secondary);
+            background: var(--border-color);
+        }
+
+        /* Tags Panel */
+        .tags-wrapper {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            min-height: 200px;
+            align-content: flex-start;
+            flex: 1;
+        }
+
+        .tag-pill {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 8px 16px;
+            border-radius: var(--radius-sm);
+            font-size: 0.9rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: var(--transition);
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .tag-pill:hover {
+            border-color: var(--accent-red);
+            color: var(--accent-red);
+        }
+
+        .tag-pill svg {
+            width: 14px;
+            height: 14px;
+            opacity: 0.5;
+        }
+
+        .tag-pill:hover svg {
+            opacity: 1;
+        }
+
+        .tags-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        .word-count {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .word-count.limit-reached {
+            color: var(--accent-red);
+        }
+
+        .copy-btn {
+            background: var(--accent-red);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .copy-btn:hover {
+            background: var(--accent-red-hover);
+        }
+
+        .copy-btn.copied {
+            background: var(--accent-green);
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .results-container.active {
+                grid-template-columns: 1fr;
+            }
+
+            .search-container {
+                flex-direction: column;
+                border-radius: var(--radius-lg);
+                padding: 12px;
+                background: transparent;
+                border: none;
+            }
+
+            .search-input {
+                width: 100%;
+                background: var(--bg-input);
+                border: 1px solid var(--border-color);
+                border-radius: var(--radius-md);
+                padding: 16px;
+                text-align: center;
+                margin-bottom: 12px;
+            }
+
+            .search-icon {
+                display: none;
+            }
+
+            .search-btn {
+                width: 100%;
+                justify-content: center;
+                border-radius: var(--radius-md);
+                padding: 16px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Include Navbar Framework -->
+    <div th:replace="~{navbar :: navbar}"></div>
+
+    <header class="tool-header">
+        <h1>Video Data & <span>Trending Tags</span> Analyzer</h1>
+        <p>Enter a YouTube URL or Video Name to instantly extract its HD Thumbnail and all the top trending tags used
+            to make it viral.</p>
+    </header>
+
+    <main class="workspace">
+
+        <!-- Input Area -->
+        <div class="search-wrapper">
+            <div class="search-container">
+                <div class="search-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="8" y1="6" x2="21" y2="6"></line>
+                        <line x1="8" y1="12" x2="21" y2="12"></line>
+                        <line x1="8" y1="18" x2="21" y2="18"></line>
+                        <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                        <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                        <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                    </svg>
+                </div>
+                <input type="text" id="videoInput" class="search-input"
+                    placeholder="Paste YouTube Video URL or search query..." autocomplete="off">
+                <button id="extractBtn" class="search-btn">
+                    Analyze Data
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                        <polyline points="12 5 19 12 12 19"></polyline>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Use Thymeleaf to add 'active' if backend sends data -->
+        <div th:class="${thumbnailUrl != null || tags != null} ? 'results-container active' : 'results-container'"
+            id="resultsArea">
+
+            <!-- Thumbnail Panel -->
+            <div class="panel">
+                <div class="panel-header">
+                    <h2 class="panel-title">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                            <polyline points="21 15 16 10 5 21"></polyline>
+                        </svg>
+                        HD Thumbnail
+                    </h2>
+                </div>
+                <div class="thumbnail-preview">
+                    <!-- Real image src from backend, fallback to placeholder if null -->
+                    <img id="thumbnailPreviewImg"
+                        th:src="${thumbnailUrl != null} ? ${thumbnailUrl} : 'https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'"
+                        alt="Video Thumbnail">
+                </div>
+                <button class="download-btn">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    Download Max Res (1080p)
+                </button>
+            </div>
+
+            <!-- Tags Panel -->
+            <div class="panel">
+                <div class="panel-header">
+                    <h2 class="panel-title">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z">
+                            </path>
+                            <line x1="7" y1="7" x2="7.01" y2="7"></line>
+                        </svg>
+                        Trending Tags
+                    </h2>
+                </div>
+
+                <div class="tags-wrapper" id="tagsList">
+                    <!-- Backend will loop over tags and output these divs. -->
+                    <th:block th:if="${tags != null and !tags.empty}">
+                        <div class="tag-pill" th:each="tag : ${tags}">
+                            <span th:text="${tag}">tag_name</span>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                        </div>
+                    </th:block>
+
+                    <!-- Fallback message if requested but no tags found -->
+                    <th:block th:if="${tags != null and tags.empty}">
+                        <div style="color: var(--text-secondary); width: 100%; text-align: center; padding: 40px 0;">
+                            No tags found for this video.
+                        </div>
+                    </th:block>
+                </div>
+
+                <div class="tags-footer">
+                    <!-- Progress / Limit context for YouTube's ~500 char limit -->
+                    <div class="word-count" id="tagLimitTracker">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="8" x2="12" y2="12"></line>
+                            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                        </svg>
+                        <span><b id="charCount">73</b> / 500 chars (Optimized)</span>
+                    </div>
+
+                    <button class="copy-btn" id="copyTagsBtn">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        </svg>
+                        Copy All Tags
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- UI Interaction Scripts (You will wire up the real endpoints) -->
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const extractBtn = document.getElementById('extractBtn');
+            const resultsArea = document.getElementById('resultsArea');
+            const copyTagsBtn = document.getElementById('copyTagsBtn');
+            const tagsList = document.getElementById('tagsList');
+            const videoInput = document.getElementById('videoInput');
+
+            // --- 1. Real Extraction Form Submit ---
+            extractBtn.addEventListener('click', () => {
+                const query = videoInput.value.trim();
+                if (!query) {
+                    alert('Please enter a YouTube video URL or search name.');
+                    return;
+                }
+
+                // Show a loading state on button
+                // Redirect to the backend controller that populates the model
+                window.location.href = `/video-details?url=${encodeURIComponent(query)}`;
+            });
+
+            // --- 2. Copy Tags to Clipboard Logic ---
+            copyTagsBtn.addEventListener('click', () => {
+                // Get all text from the tag pills, format as comma separated
+                const pills = tagsList.querySelectorAll('.tag-pill');
+                const tagArray = Array.from(pills).map(pill => pill.innerText.replace(/[\n\r]+|[\s]{2,}/g, ' ').trim());
+                const tagsString = tagArray.join(', ');
+
+                navigator.clipboard.writeText(tagsString).then(() => {
+                    // Success UI Change
+                    const originalBtnContent = copyTagsBtn.innerHTML;
+                    copyTagsBtn.classList.add('copied');
+                    copyTagsBtn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Copied!`;
+
+                    setTimeout(() => {
+                        copyTagsBtn.classList.remove('copied');
+                        copyTagsBtn.innerHTML = originalBtnContent;
+                    }, 2000);
+                });
+            });
+
+            // --- 3. Tag Deletion UI logic (Allows users to trim down to 500 chars) ---
+            tagsList.addEventListener('click', (e) => {
+                const pill = e.target.closest('.tag-pill');
+                if (pill) {
+                    pill.style.transform = 'scale(0.9)';
+                    pill.style.opacity = '0';
+                    setTimeout(() => {
+                        pill.remove();
+                        updateCharCount(); // Call function to recalculate the 500 max limit
+                    }, 200);
+                }
+            });
+
+            function updateCharCount() {
+                const pills = tagsList.querySelectorAll('.tag-pill');
+                const tagArray = Array.from(pills).map(pill => pill.innerText.replace(/[\n\r]+|[\s]{2,}/g, ' ').trim());
+                const totalChars = tagArray.join(', ').length;
+
+                const countDisplay = document.getElementById('charCount');
+                const tracker = document.getElementById('tagLimitTracker');
+
+                countDisplay.innerText = totalChars;
+
+                if (totalChars > 500) {
+                    tracker.classList.add('limit-reached');
+                } else {
+                    tracker.classList.remove('limit-reached');
+                }
+            }
+
+            // Initial call
+            updateCharCount();
+        });
+    </script>
+</body>
+
+</html>

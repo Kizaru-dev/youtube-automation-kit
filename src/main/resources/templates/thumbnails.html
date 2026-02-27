@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thumbnail Downloader - YouTube Tools</title>
+    <!-- Poppins Font for Rapidtags style typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <style>
+        :root {
+            /* Rapidtags Style Theme Variables */
+            --bg-base: #0a0a0a;
+            --bg-surface: #141414;
+            --bg-surface-hover: #1f1f1f;
+            --bg-input: #1a1a1a;
+            --text-primary: #ffffff;
+            --text-secondary: #a1a1aa;
+            --accent-red: #f40000;
+            --accent-red-hover: #cc0000;
+            --accent-red-glow: rgba(244, 0, 0, 0.25);
+            --accent-green: #10b981;
+            --border-color: #27272a;
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-full: 9999px;
+            --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        [data-theme="light"] {
+            --bg-base: #f8fafc;
+            --bg-surface: #ffffff;
+            --bg-surface-hover: #f1f5f9;
+            --bg-input: #f1f5f9;
+            --text-primary: #0f172a;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --accent-red-glow: rgba(234, 88, 12, 0.15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* Tool Header Section */
+        .tool-header {
+            text-align: center;
+            padding: 80px 20px 40px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .tool-header h1 {
+            font-size: clamp(2rem, 4vw, 3rem);
+            font-weight: 800;
+            margin-bottom: 16px;
+            letter-spacing: -0.02em;
+        }
+
+        .tool-header h1 span {
+            color: var(--accent-red);
+        }
+
+        .tool-header p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        /* Tool Workspace */
+        .workspace {
+            flex: 1;
+            max-width: 800px;
+            /* narrowed for single panel */
+            margin: 0 auto;
+            width: 100%;
+            padding: 0 20px 80px;
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+        }
+
+        /* Search / Input Area */
+        .search-wrapper {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 32px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        }
+
+        .search-container {
+            width: 100%;
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-full);
+            padding: 8px;
+            display: flex;
+            align-items: center;
+            transition: var(--transition);
+        }
+
+        .search-container:focus-within {
+            border-color: var(--accent-red);
+            box-shadow: 0 0 0 4px var(--accent-red-glow);
+            transform: translateY(-1px);
+        }
+
+        .search-icon {
+            padding: 0 16px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+        }
+
+        .search-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--text-primary);
+            font-size: 1.125rem;
+            font-weight: 500;
+            padding: 12px 0;
+        }
+
+        .search-input::placeholder {
+            color: var(--text-secondary);
+            font-weight: 400;
+        }
+
+        .search-btn {
+            background-color: var(--accent-red);
+            color: white;
+            border: none;
+            border-radius: var(--radius-full);
+            padding: 14px 32px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .search-btn:hover {
+            background-color: var(--accent-red-hover);
+            transform: scale(1.02);
+            box-shadow: 0 4px 15px var(--accent-red-glow);
+        }
+
+        /* Results Layout (Single Panel) */
+        .results-container {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+            display: none;
+            /* Hidden by default until JS triggers */
+        }
+
+        .results-container.active {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Thumbnail Panel */
+        .panel {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 32px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .panel-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .panel-title svg {
+            color: var(--accent-red);
+        }
+
+        .thumbnail-preview {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            background: var(--bg-input);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            position: relative;
+            margin-bottom: 24px;
+        }
+
+        .thumbnail-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+
+        .thumbnail-preview:hover img {
+            transform: scale(1.02);
+        }
+
+        .download-btn {
+            width: 100%;
+            background: var(--accent-red);
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: var(--radius-md);
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .download-btn:hover {
+            background: var(--accent-red-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px var(--accent-red-glow);
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .search-container {
+                flex-direction: column;
+                border-radius: var(--radius-lg);
+                padding: 12px;
+                background: transparent;
+                border: none;
+            }
+
+            .search-input {
+                width: 100%;
+                background: var(--bg-input);
+                border: 1px solid var(--border-color);
+                border-radius: var(--radius-md);
+                padding: 16px;
+                text-align: center;
+                margin-bottom: 12px;
+            }
+
+            .search-icon {
+                display: none;
+            }
+
+            .search-btn {
+                width: 100%;
+                justify-content: center;
+                border-radius: var(--radius-md);
+                padding: 16px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Include Navbar Framework -->
+    <div th:replace="~{navbar :: navbar}"></div>
+
+    <header class="tool-header">
+        <h1>YouTube <span>Thumbnail</span> Downloader</h1>
+        <p>Enter a YouTube Video URL to instantly fetch and download its high-resolution thumbnail.</p>
+    </header>
+
+    <main class="workspace">
+
+        <!-- Input Area -->
+        <div class="search-wrapper">
+            <div class="search-container">
+                <div class="search-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                        <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                        <polyline points="21 15 16 10 5 21"></polyline>
+                    </svg>
+                </div>
+                <!-- ID matched to backend expectation if needed; placeholder describes usage -->
+                <input type="text" id="videoInput" class="search-input" placeholder="Paste YouTube Video URL here..."
+                    autocomplete="off">
+                <button id="extractBtn" class="search-btn">
+                    Get Thumbnail
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <polyline points="19 12 12 19 5 12"></polyline>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Hidden by default, shown via JS when Backend connection is simulated/made -->
+        <div class="results-container" id="resultsArea">
+
+            <!-- Thumbnail Panel Only -->
+            <div class="panel">
+                <div class="panel-header">
+                    <h2 class="panel-title">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                            <polyline points="21 15 16 10 5 21"></polyline>
+                        </svg>
+                        HD Thumbnail Result
+                    </h2>
+                </div>
+                <div class="thumbnail-preview">
+                    <!-- Placeholder image; backend will inject real image src -->
+                    <img id="thumbnailPreviewImg"
+                        src="https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80"
+                        alt="Video Thumbnail">
+                </div>
+                <!-- This could eventually be an anchor tag <a> wrapping a button if generated from backend -->
+                <button class="download-btn">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    Download Max Res (1080p)
+                </button>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- UI Interaction Scripts for the Client Side (Real backend data injection later) -->
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const extractBtn = document.getElementById('extractBtn');
+            const resultsArea = document.getElementById('resultsArea');
+            const videoInput = document.getElementById('videoInput');
+
+            // --- 1. Simulate Extraction UI Reveal ---
+            extractBtn.addEventListener('click', () => {
+                const query = videoInput.value.trim();
+                if (!query) {
+                    alert('Please enter a YouTube video URL.');
+                    return;
+                }
+
+                // Show a loading state on button
+                const originalText = extractBtn.innerHTML;
+                extractBtn.innerHTML = 'Fetching... <span style="animation: spin 1s linear infinite; display: inline-block;">⚙️</span>';
+                extractBtn.style.opacity = '0.8';
+
+                // Simulate backend delay then show results
+                setTimeout(() => {
+                    extractBtn.innerHTML = originalText;
+                    extractBtn.style.opacity = '1';
+                    resultsArea.classList.add('active'); // Reveals the grid
+                }, 800);
+            });
+        });
+    </script>
+</body>
+
+</html>
