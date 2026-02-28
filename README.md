@@ -21,15 +21,15 @@ Designed with best practices in mind—such as scalable MVC architecture, respon
 
 ## 📸 Screenshots
 
-*(To make the project shine for recruiters, add screenshots of your live application here)*
+
 
 | 🏠 Home Page | 🤖 AI Thumbnail Generator |
 | :---: | :---: |
-| <img src="images/home.png" width="400" alt="Home Page"> | <img src="images/ai-thumbnail.png" width="400" alt="AI Thumbnail Generator"> |
+| <img src="./src/main/resources/templates/screenshoots/home.png" width="400" alt="Home Page"> | <img src="./src/main/resources/templates/screenshoots/thumbnails.png" width="400" alt="AI Thumbnail Generator"> |
 
-| � SEO Tag Generator | � Video Data Analyzer |
+|  SEO Tag Generator |  Video Data Analyzer |
 | :---: | :---: |
-| <img src="images/seo-tags.png" width="400" alt="SEO Tag Generator"> | <img src="[Placeholder: Optional 4th Screenshot Here]" width="400" alt="Optional 4th View"> |
+| <img src="./src/main/resources/templates/screenshoots/seo.png" width="400" alt="SEO Tag Generator"> | <img src="./src/main/resources/templates/screenshoots/video-details.png" width="400" alt="Optional 4th View"> |
 
 ---
 
