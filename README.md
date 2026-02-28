@@ -23,15 +23,13 @@ Designed with best practices in mind—such as scalable MVC architecture, respon
 
 *(To make the project shine for recruiters, add screenshots of your live application here)*
 
-| 🏠 Dashboard | 📊 Video Details & Tag Extraction |
+| 🏠 Home Page | 🤖 AI Thumbnail Generator |
 | :---: | :---: |
-| <img src="[Placeholder: Add Dashboard Screenshot Here]" width="400" alt="Dashboard View"> | <img src="[Placeholder: Add Video Details Screenshot Here]" width="400" alt="Video Details View"> |
+| <img src="images/home.png" width="400" alt="Home Page"> | <img src="images/ai-thumbnail.png" width="400" alt="AI Thumbnail Generator"> |
 
-| 🖼️ Thumbnail Tools | 🔍 SEO Analysis |
+| � SEO Tag Generator | � Video Data Analyzer |
 | :---: | :---: |
-| <img src="[Placeholder: Add Thumbnail Tools Screenshot Here]" width="400" alt="Thumbnail View"> | <img src="[Placeholder: Add SEO Tools Screenshot Here]" width="400" alt="SEO Analysis View"> |
-
-> **Note:** Replace the `[Placeholder: Add ...]` links above with actual cropped screenshots of your running application to maximize impact for recruiters.
+| <img src="images/seo-tags.png" width="400" alt="SEO Tag Generator"> | <img src="[Placeholder: Optional 4th Screenshot Here]" width="400" alt="Optional 4th View"> |
 
 ---
 
