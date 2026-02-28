@@ -126,7 +126,7 @@ Follow these instructions to get a copy of the project up and running on your lo
 
 ---
 
-## 🎯 Why This Project Stands Out (For Recruiters)
+## 🎯 Why This Project Stands Out
 
 - **Complete End-to-End Implementation:** Demonstrates the ability to handle both robust frontend templating and structured backend mechanics, proving elite full-stack awareness.
 - **Modern Standards:** Uses the latest Java 21, coupled with the newest Spring Boot, displaying an active understanding of cutting-edge enterprise standards.
@@ -136,7 +136,7 @@ Follow these instructions to get a copy of the project up and running on your lo
 ---
 
 <div align="center">
-  <b>Developed by <a href="https://github.com/your-username">Your Name/Priyanshu Singh</a></b>
+  <b>Developed by <a href="https://github.com/your-username">Priyanshu Singh</a></b>
   <br>
   <i>"Passionate about building scalable backend systems, robust architectures, and solving complex problems."</i>
 </div>
