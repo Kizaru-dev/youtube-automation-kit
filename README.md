@@ -29,7 +29,7 @@ Designed with best practices in mind—such as scalable MVC architecture, respon
 
 |  SEO Tag Generator |  Video Data Analyzer |
 | :---: | :---: |
-| <img src="./src/main/resources/templates/screenshoots/seo.png" width="400" alt="SEO Tag Generator"> | <img src="./src/main/resources/templates/screenshoots/video-details.png" width="400" alt="Optional 4th View"> |
+| <img src="./src/main/resources/templates/screenshoots/seo.png" width="400" alt="SEO Tag Generator"> | <img src="./src/main/resources/templates/screenshoots/video-data.png" width="400" alt="Video Data Analyzer"> |
 
 ---
 
