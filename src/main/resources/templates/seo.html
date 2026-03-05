@@ -414,71 +414,6 @@
 
                 <div class="tags-wrapper" id="tagsList">
                     <!-- Example Tags; backend will loop to create these dynamically -->
-                    <div class="tag-pill" style="animation-delay: 0.05s;">baking <svg viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2">
-                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                        </svg></div>
-                    <div class="tag-pill" style="animation-delay: 0.1s;">how to bake a cake <svg viewBox="0 0 24 24"
-                            fill="none" stroke="currentColor" stroke-width="2">
-                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                        </svg></div>
-                    <div class="tag-pill" style="animation-delay: 0.15s;">cake recipe <svg viewBox="0 0 24 24"
-                            fill="none" stroke="currentColor" stroke-width="2">
-                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                        </svg></div>
-                    <div class="tag-pill" style="animation-delay: 0.2s;">easy cake recipe <svg viewBox="0 0 24 24"
-                            fill="none" stroke="currentColor" stroke-width="2">
-                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                        </svg></div>
-                    <div class="tag-pill" style="animation-delay: 0.25s;">chocolate cake <svg viewBox="0 0 24 24"
-                            fill="none" stroke="currentColor" stroke-width="2">
-                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                        </svg></div>
-                    <div class="tag-pill" style="animation-delay: 0.3s;">baking for beginners <svg viewBox="0 0 24 24"
-                            fill="none" stroke="currentColor" stroke-width="2">
-                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                        </svg></div>
-                    <div class="tag-pill" style="animation-delay: 0.35s;">dessert <svg viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2">
-                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                        </svg></div>
-                    <div class="tag-pill" style="animation-delay: 0.4s;">homemade cake <svg viewBox="0 0 24 24"
-                            fill="none" stroke="currentColor" stroke-width="2">
-                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                        </svg></div>
-                    <div class="tag-pill" style="animation-delay: 0.45s;">baking ASMR <svg viewBox="0 0 24 24"
-                            fill="none" stroke="currentColor" stroke-width="2">
-                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                        </svg></div>
-                    <div class="tag-pill" style="animation-delay: 0.5s;">sponge cake <svg viewBox="0 0 24 24"
-                            fill="none" stroke="currentColor" stroke-width="2">
-                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                        </svg></div>
-                    <div class="tag-pill" style="animation-delay: 0.55s;">vanilla cake <svg viewBox="0 0 24 24"
-                            fill="none" stroke="currentColor" stroke-width="2">
-                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                        </svg></div>
-                    <div class="tag-pill" style="animation-delay: 0.6s;">satisfying baking <svg viewBox="0 0 24 24"
-                            fill="none" stroke="currentColor" stroke-width="2">
-                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                        </svg></div>
-                    <div class="tag-pill" style="animation-delay: 0.65s;">yummy <svg viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2">
-                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                        </svg></div>
                 </div>
 
                 <div class="tags-footer">
@@ -529,13 +464,44 @@
                 generateTagsBtn.innerHTML = 'Generating... <span style="animation: spin 1s linear infinite; display: inline-block;">⚙️</span>';
                 generateTagsBtn.style.opacity = '0.8';
 
-                // Simulate backend delay then show results
-                setTimeout(() => {
-                    generateTagsBtn.innerHTML = originalText;
-                    generateTagsBtn.style.opacity = '1';
-                    resultsArea.classList.add('active'); // Reveals the grids
-                    updateCharCount(); // Initialize Character counter on open
-                }, 800);
+                // Fetch real data from the backend API
+                fetch(`/api/youtube/seo-tags?query=${encodeURIComponent(query)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        generateTagsBtn.innerHTML = originalText;
+                        generateTagsBtn.style.opacity = '1';
+
+                        if (data.success && data.tags && data.tags.length > 0) {
+                            // Clear existing tags
+                            tagsList.innerHTML = '';
+
+                            // Iterate and inject new tags
+                            data.tags.forEach((tag, index) => {
+                                const delay = 0.05 * (index + 1);
+                                const tagHtml = `
+                                    <div class="tag-pill" style="animation-delay: ${delay}s;">${tag} 
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                                        </svg>
+                                    </div>
+                                `;
+                                tagsList.innerHTML += tagHtml;
+                            });
+
+                        } else {
+                            tagsList.innerHTML = '<div style="color: var(--text-secondary); width: 100%; text-align: center; padding: 40px 0;">No suitable tags found for this query.</div>';
+                        }
+
+                        resultsArea.classList.add('active'); // Reveals the grids
+                        updateCharCount(); // Initialize Character counter on open
+                    })
+                    .catch(error => {
+                        console.error('Error fetching tags:', error);
+                        generateTagsBtn.innerHTML = originalText;
+                        generateTagsBtn.style.opacity = '1';
+                        alert("There was an error generating tags. Please try again.");
+                    });
             });
 
             // --- 2. Copy Tags to Clipboard Logic ---

@@ -348,15 +348,17 @@
                         alt="Video Thumbnail">
                 </div>
                 <!-- This could eventually be an anchor tag <a> wrapping a button if generated from backend -->
-                <button class="download-btn">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                        <polyline points="7 10 12 15 17 10"></polyline>
-                        <line x1="12" y1="15" x2="12" y2="3"></line>
-                    </svg>
-                    Download Max Res (1080p)
-                </button>
+                <a id="downloadLink" href="#" target="_blank" style="text-decoration: none;">
+                    <button class="download-btn">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        Download Max Res (1080p)
+                    </button>
+                </a>
             </div>
 
         </div>
@@ -382,12 +384,31 @@
                 extractBtn.innerHTML = 'Fetching... <span style="animation: spin 1s linear infinite; display: inline-block;">⚙️</span>';
                 extractBtn.style.opacity = '0.8';
 
-                // Simulate backend delay then show results
-                setTimeout(() => {
-                    extractBtn.innerHTML = originalText;
-                    extractBtn.style.opacity = '1';
-                    resultsArea.classList.add('active'); // Reveals the grid
-                }, 800);
+                // Fetch real data from the backend API
+                fetch(`/api/youtube/thumbnail?url=${encodeURIComponent(query)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        extractBtn.innerHTML = originalText;
+                        extractBtn.style.opacity = '1';
+
+                        if (data.success && data.thumbnailUrl) {
+                            const imgElement = document.getElementById('thumbnailPreviewImg');
+                            const downloadLink = document.getElementById('downloadLink');
+
+                            imgElement.src = data.thumbnailUrl;
+                            downloadLink.href = data.thumbnailUrl;
+
+                            resultsArea.classList.add('active'); // Reveals the grid
+                        } else {
+                            alert(data.message || "Could not retrieve thumbnail. Please check the URL.");
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching thumbnail:', error);
+                        extractBtn.innerHTML = originalText;
+                        extractBtn.style.opacity = '1';
+                        alert("There was an error retrieving the thumbnail. Please try again.");
+                    });
             });
         });
     </script>
